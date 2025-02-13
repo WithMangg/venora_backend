@@ -6,11 +6,18 @@
         ->groupByRaw('date(created_at)')
         ->get();
 
-    $totalpembayaran = App\Models\Pembayaran::sum('total');
+    $totalpembayaran = App\Models\Pembayaran::count() > 0 ? App\Models\Pembayaran::sum('total') : 0;
     $pembayarandate = App\Models\Pembayaran::selectRaw('date(tanggal_pemeriksaan) as tanggal, sum(total) as total')
         ->groupByRaw('date(tanggal_pemeriksaan)')
         ->get();
+
     
+    if ($pasien->count() == 0) {
+        $pasien = collect();
+    }
+    if ($pembayarandate->count() == 0) {
+        $pembayarandate = collect();
+    }
 
     // dd($pasien);
 ?>
@@ -48,33 +55,34 @@
                                 <div class="card">
                                   <div class="card-body">
                                     <div class="d-flex align-items-center">
-                                      <div class="subheader">Sales</div>
+                                      <div class="subheader">Total Dokter</div>
                                       <div class="ms-auto lh-1">
-                                        <div class="dropdown">
+                                        {{-- <div class="dropdown">
                                           <a class="dropdown-toggle text-secondary" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Last 7 days</a>
                                           <div class="dropdown-menu dropdown-menu-end">
                                             <a class="dropdown-item active" href="#">Last 7 days</a>
                                             <a class="dropdown-item" href="#">Last 30 days</a>
                                             <a class="dropdown-item" href="#">Last 3 months</a>
                                           </div>
-                                        </div>
+                                        </div> --}}
                                       </div>
                                     </div>
-                                    <div class="h1 mb-3">75%</div>
-                                    <div class="d-flex mb-2">
+                                    <div class="h1 mb-3">{{ App\Models\Dokter::count() }}</div>
+                                    <div class="mb-5"></div>
+                                    {{-- <div class="d-flex mb-2">
                                       <div>Conversion rate</div>
                                       <div class="ms-auto">
                                         <span class="text-green d-inline-flex align-items-center lh-1">
                                           7% <!-- Download SVG icon from http://tabler-icons.io/i/trending-up -->
-                                          <svg xmlns="http://www.w3.org/2000/svg" class="icon ms-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 17l6 -6l4 4l8 -8" /><path d="M14 7l7 0l0 7" /></svg>
-                                        </span>
+                                          {{-- <svg xmlns="http://www.w3.org/2000/svg" class="icon ms-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 17l6 -6l4 4l8 -8" /><path d="M14 7l7 0l0 7" /></svg> --}}
+                                        {{-- </span>
                                       </div>
                                     </div>
                                     <div class="progress progress-sm">
                                       <div class="progress-bar bg-primary" style="width: 75%" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" aria-label="75% Complete">
                                         <span class="visually-hidden">75% Complete</span>
                                       </div>
-                                    </div>
+                                    </div> --}}
                                   </div>
                                 </div>
                               </div>
@@ -82,7 +90,7 @@
                                 <div class="card">
                                   <div class="card-body">
                                     <div class="d-flex align-items-center">
-                                      <div class="subheader">Total Transaksi</div>
+                                      <div class="subheader">Jumlah Transaksi</div>
                                       <div class="ms-auto lh-1">
                                        
                                       </div>
@@ -90,16 +98,23 @@
                                     <div class="d-flex align-items-baseline">
                                       <div class="h1 mb-0 me-2">Rp. {{ number_format($totalpembayaran, 0, ',', '.') }}</div>
                                       <div class="me-auto">
-                                        @if(($totalpembayaran - $pembayarandate->last()->total) / $totalpembayaran < 0)
-                                            <span class="text-red d-inline-flex align-items-center lh-1">
-                                                {{ number_format((($totalpembayaran - $pembayarandate->last()->total) / $totalpembayaran) * 100, 2) }}%
-                                              <svg xmlns="http://www.w3.org/2000/svg" class="icon ms-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19 14l-6 -6l-4 4l-8 8" /><path d="M10 17l-7 0l0 -7" /></svg>
-                                            </span>
-                                        @else
+                                        @if($pembayarandate->count() == 0)
                                             <span class="text-green d-inline-flex align-items-center lh-1">
-                                                {{ number_format((($totalpembayaran - $pembayarandate->last()->total) / $totalpembayaran) * 100, 2) }}%
+                                                0%
                                               <svg xmlns="http://www.w3.org/2000/svg" class="icon ms-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 17l6 -6l4 4l8 -8" /><path d="M14 7l7 0l0 7" /></svg>
                                             </span>
+                                        @else
+                                            @if(($totalpembayaran - $pembayarandate->last()->total) / $totalpembayaran < 0)
+                                                <span class="text-red d-inline-flex align-items-center lh-1">
+                                                    {{ number_format((($totalpembayaran - $pembayarandate->last()->total) / $totalpembayaran) * 100, 2) }}%
+                                                  <svg xmlns="http://www.w3.org/2000/svg" class="icon ms-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19 14l-6 -6l-4 4l-8 8" /><path d="M10 17l-7 0l0 -7" /></svg>
+                                                </span>
+                                            @else
+                                                <span class="text-green d-inline-flex align-items-center lh-1">
+                                                    {{ number_format((($totalpembayaran - $pembayarandate->last()->total) / $totalpembayaran) * 100, 2) }}%
+                                                  <svg xmlns="http://www.w3.org/2000/svg" class="icon ms-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 17l6 -6l4 4l8 -8" /><path d="M14 7l7 0l0 7" /></svg>
+                                                </span>
+                                            @endif
                                         @endif
                                       </div>
                                     </div>
@@ -111,8 +126,8 @@
                                 <div class="card">
                                   <div class="card-body">
                                     <div class="d-flex align-items-center">
-                                      <div class="subheader">New clients</div>
-                                      <div class="ms-auto lh-1">
+                                      <div class="subheader">Total Transaksi</div>
+                                      {{-- <div class="ms-auto lh-1">
                                         <div class="dropdown">
                                           <a class="dropdown-toggle text-secondary" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Last 7 days</a>
                                           <div class="dropdown-menu dropdown-menu-end">
@@ -121,14 +136,14 @@
                                             <a class="dropdown-item" href="#">Last 3 months</a>
                                           </div>
                                         </div>
-                                      </div>
+                                      </div> --}}
                                     </div>
                                     <div class="d-flex align-items-baseline">
-                                      <div class="h1 mb-3 me-2">6,782</div>
+                                      <div class="h1 mb-3 me-2">{{ App\Models\Pembayaran::count() }}</div>
                                       <div class="me-auto">
                                         <span class="text-yellow d-inline-flex align-items-center lh-1">
-                                          0% <!-- Download SVG icon from http://tabler-icons.io/i/minus -->
-                                          <svg xmlns="http://www.w3.org/2000/svg" class="icon ms-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0" /></svg>
+                                          {{-- 0% <!-- Download SVG icon from http://tabler-icons.io/i/minus --> --}}
+                                          {{-- <svg xmlns="http://www.w3.org/2000/svg" class="icon ms-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0" /></svg> --}}
                                         </span>
                                       </div>
                                     </div>
@@ -149,8 +164,12 @@
                                       <div class="h1 mb-3 me-2">{{ \App\Models\Pasien::count() }}</div>
                                       <div class="me-auto">
                                         <span class="text-green d-inline-flex align-items-center lh-1">
-                                          {{ number_format((\App\Models\Pasien::count() - \App\Models\Pasien::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count()) / \App\Models\Pasien::count() * 100, 2) }}%
-                                          <svg xmlns="http://www.w3.org/2000/svg" class="icon ms-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 17l6 -6l4 4l8 -8" /><path d="M14 7l7 0l0 7" /></svg>
+                                          @if(\App\Models\Pasien::count() == 0)
+                                            0%
+                                          @else
+                                            {{ number_format((\App\Models\Pasien::count() - \App\Models\Pasien::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count()) / \App\Models\Pasien::count() * 100, 2) }}%
+                                          @endif
+                                          {{-- <svg xmlns="http://www.w3.org/2000/svg" class="icon ms-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 17l6 -6l4 4l8 -8" /><path d="M14 7l7 0l0 7" /></svg> --}}
                                         </span>
                                       </div>
                                     </div>
@@ -180,8 +199,8 @@
                                             <th>No. Rekam Medis</th>
                                             <th>Nama Pasien</th>
                                             <th>Dokter</th>
-                                            <th>Poli</th>
                                             <th>Tanggal Daftar</th>
+                                            <th>Waktu</th>
                                             <th>Keluhan</th>
                                             <th>Status</th>
                                             {{-- <th>Action</th> --}}
@@ -409,14 +428,14 @@
                                 data: 'dokter_id',
                                 name: 'dokter_id'
                             },
-                            {
-                                data: 'poli_id',
-                                name: 'poli_id'
-                            },
 
                             {
                                 data: 'tanggal_daftar',
                                 name: 'tanggal_daftar'
+                            },
+                            {
+                                data: 'waktu',
+                                name: 'waktu'
                             },
                             {
                                 data: 'keluhan',
@@ -457,6 +476,9 @@
             </script>
 
 <script>
+
+    var pendaftaran = @json(isset($pembayarandate) ? $pembayarandate->pluck('total')->toArray() : []);
+    var date = @json(isset($pembayarandate) ? $pembayarandate->pluck('tanggal')->toArray() : []);
     // @formatter:off
     document.addEventListener("DOMContentLoaded", function () {
         window.ApexCharts && (new ApexCharts(document.getElementById('chart-mentions'), {
@@ -485,14 +507,8 @@
                 opacity: 1,
             },
             series: [{
-                name: "Web",
-                data: [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 2, 12, 5, 8, 22, 6, 8, 6, 4, 1, 8, 24, 29, 51, 40, 47, 23, 26, 50, 26, 41, 22, 46, 47, 81, 46, 6]
-            },{
-                name: "Social",
-                data: [2, 5, 4, 3, 3, 1, 4, 7, 5, 1, 2, 5, 3, 2, 6, 7, 7, 1, 5, 5, 2, 12, 4, 6, 18, 3, 5, 2, 13, 15, 20, 47, 18, 15, 11, 10, 0]
-            },{
-                name: "Other",
-                data: [2, 9, 1, 7, 8, 3, 6, 5, 5, 4, 6, 4, 1, 9, 3, 6, 7, 5, 2, 8, 4, 9, 1, 2, 6, 7, 5, 1, 8, 3, 2, 3, 4, 9, 7, 1, 6]
+                name: "Pendaftaran",
+                data: pendaftaran
             }],
             tooltip: {
                 theme: 'dark'
@@ -528,10 +544,8 @@
                     padding: 4
                 },
             },
-            labels: [
-                '2020-06-20', '2020-06-21', '2020-06-22', '2020-06-23', '2020-06-24', '2020-06-25', '2020-06-26', '2020-06-27', '2020-06-28', '2020-06-29', '2020-06-30', '2020-07-01', '2020-07-02', '2020-07-03', '2020-07-04', '2020-07-05', '2020-07-06', '2020-07-07', '2020-07-08', '2020-07-09', '2020-07-10', '2020-07-11', '2020-07-12', '2020-07-13', '2020-07-14', '2020-07-15', '2020-07-16', '2020-07-17', '2020-07-18', '2020-07-19', '2020-07-20', '2020-07-21', '2020-07-22', '2020-07-23', '2020-07-24', '2020-07-25', '2020-07-26'
-            ],
-            colors: [tabler.getColor("primary"), tabler.getColor("primary", 0.8), tabler.getColor("green", 0.8)],
+            labels: date,
+            colors: [tabler.getColor("green"), tabler.getColor("green", 0.8), tabler.getColor("green", 0.5)],
             legend: {
                 show: false,
             },
@@ -603,7 +617,7 @@
                     '{{ $p->tanggal }}',
                 @endforeach
             ],
-            colors: [tabler.getColor("primary")],
+            colors: [tabler.getColor("green")],
             legend: {
                 show: false,
             },
@@ -665,7 +679,7 @@
             labels: [
                 '2020-06-20', '2020-06-21', '2020-06-22', '2020-06-23', '2020-06-24', '2020-06-25', '2020-06-26', '2020-06-27', '2020-06-28', '2020-06-29', '2020-06-30', '2020-07-01', '2020-07-02', '2020-07-03', '2020-07-04', '2020-07-05', '2020-07-06', '2020-07-07', '2020-07-08', '2020-07-09', '2020-07-10', '2020-07-11', '2020-07-12', '2020-07-13', '2020-07-14', '2020-07-15', '2020-07-16', '2020-07-17', '2020-07-18', '2020-07-19'
             ],
-            colors: [tabler.getColor("primary"), tabler.getColor("gray-600")],
+            colors: [tabler.getColor("green"), tabler.getColor("gray-600")],
             legend: {
                 show: false,
             },
@@ -736,7 +750,7 @@
                     '{{ $p->tanggal }}',
                 @endforeach
             ],
-            colors: [tabler.getColor("primary")],
+            colors: [tabler.getColor("green")],
             legend: {
                 show: false,
             },

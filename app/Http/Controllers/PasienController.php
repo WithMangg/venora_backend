@@ -191,7 +191,7 @@ class PasienController extends Controller
         $userpengguna = User::updateOrCreate(
             ['email' => $user->email],
             ['name' => $request->nama_pasien, 
-             'email' => $request->email, 
+             'email' => $user->email, 
              'password' => Hash::make('password'),
              'role_id' => '2',
             ]

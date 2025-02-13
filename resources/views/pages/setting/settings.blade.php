@@ -61,36 +61,6 @@
             }
         });
 
-
-        $('#laravel_datatable').DataTable({
-            processing: true,
-            serverSide: true,
-            ajax: "{{ route('polis.index') }}",
-            columns: [{
-                    data: 'id',
-                    name: 'id'
-                },
-                {
-                    data: 'nama_poli',
-                    name: 'nama_poli'
-                },
-                {
-                    data: 'deskripsi',
-                    name: 'deskripsi'
-                },
-                {
-                    data: 'action',
-                    name: 'action',
-                    orderable: false,
-                    searchable: false
-                },
-            ],
-            responsive: true,
-            scrollX: true,
-
-        });
-
-
         $('#saveBtn').click(function (e) {
             e.preventDefault();
             $('#saveBtn').html('Sending..');
@@ -116,10 +86,7 @@
 
                     // Tampilkan alert sukses
                     
-                    $('#alertPlaceholder').html(`
-                        @component('components.popup.alert', ['type' => 'success', 'message' => 'Pengaturan Web Berhasil diperbarui!'])
-                        @endcomponent
-                    `);
+                    toastr.success('Pengaturan Web Berhasil diperbarui!');
                     
                 },
                 error: function (xhr) {
@@ -139,10 +106,7 @@
                         }
 
                     } else {
-                        $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'danger', 'message' => 'Obat gagal ditambahkan!'])
-                            @endcomponent
-                        `);
+                        toastr.error('Pengaturan Web gagal diperbarui!');
                     }
 
                 }
@@ -150,43 +114,6 @@
         });
     });
 
-    $('body').on('click', '.deleteProduct', function () {
-        var user_id = $(this).data('id');
-        $('#confirmDeleteModal').modal('show');
-
-        // Handle konfirmasi hapus
-        $('#confirmDeleteBtn').off('click').on('click', function () {
-            $.ajax({
-                type: 'DELETE',
-                url: "{{ route('polis.index') }}/" + user_id,
-                success: function (data) {
-                    
-                    $('#laravel_datatable').DataTable().ajax.reload();
-                    $('#confirmDeleteModal').modal('hide');
-                    
-
-
-                    // Tampilkan alert sukses
-                    $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'success', 'message' => 'Obat berhasil dihapus!'])
-                            @endcomponent
-                        `);
-
-                        document.location.reload(true);
-                        window.location.reload(true);
-                },
-                error: function (xhr) {
-                    $('#confirmDeleteModal').modal('hide');
-
-                    // Tampilkan alert error
-                    $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'danger', 'message' => 'Obat gagal dihapus!'])
-                            @endcomponent
-                        `);
-                }
-            });
-        });
-    });
 
 </script>
 @endsection

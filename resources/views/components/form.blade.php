@@ -31,9 +31,9 @@
                                 <input type="date" class="form-control" id="{{ $field['field'] }}" name="{{ $field['field'] }}" placeholder="{{ $field['placeholder'] }}" {{ $field['required'] ?? false ? 'required' : '' }}>
                             @elseif ($field['type'] === 'select')
                                 <select class="form-control" id="{{ $field['field'] }}" name="{{ $field['field'] }}" {{ $field['required'] ?? false ? 'required' : '' }}>
-                                    <option value="" disabled selected>{{ $field['placeholder'] }}</option>
+                                    <option value="">{{ $field['placeholder'] }}</option>
                                     @foreach ($field['options'] as $value => $label)
-                                        <option value="{{ $value }}">{{ $label }}</option>
+                                        <option value="{{ $value }}" {{ $value == ($field['default'] ?? '') ? 'selected' : '' }}>{{ $label }}</option>
                                     @endforeach
                                 </select>
                             @elseif ($field['type'] === 'checkbox')

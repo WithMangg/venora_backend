@@ -71,10 +71,6 @@
                                 <td id="dokter"></td>
                             </tr>
                             <tr>
-                                <th>Poli</th>
-                                <td id="poli"></td>
-                            </tr>
-                            <tr>
                                 <th>Tanggal</th>
                                 <td id="tanggal_pemeriksaan"></td>
                             </tr>

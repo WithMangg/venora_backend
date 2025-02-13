@@ -52,8 +52,8 @@
                                 <th>No. Rekam Medis</th>
                                 <th>Nama Pasien</th>
                                 <th>Dokter</th>
-                                <th>Poli</th>
                                 <th>Tanggal Daftar</th>
+                                <th>Waktu</th>
                                 <th>Keluhan</th>
                                 <th>Status</th>
                                 <th>Action</th>
@@ -118,8 +118,8 @@
                     name: 'dokter_id'
                 },
                 {
-                    data: 'poli_id',
-                    name: 'poli_id'
+                    data: 'waktu',
+                    name: 'waktu'
                 },
                 
                 {

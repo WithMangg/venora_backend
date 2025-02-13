@@ -106,21 +106,12 @@ class PendaftaranController extends Controller
 
         $this->form_daftar = array(
             array(
-                'label' => 'Poli',
-                'field' => 'poli_id',
-                'type' => 'select',
-                'placeholder' => 'Pilih Poli',
-                'width' => 4,
-                'options' => Poli::pluck('nama_poli', 'id')->toArray(),
-                'required' => true
-            ),
-            array(
                 'label' => 'Dokter',
                 'field' => 'dokter_id',
                 'type' => 'select',
                 'placeholder' => 'Pilih Dokter',
                 'width' => 4,
-                'options' => Dokter::pluck('nama', 'id')->toArray(),
+                'options' => Dokter::where('status', 'aktif')->pluck('nama', 'id')->toArray(),
                 'required' => true
             ),
             array(
@@ -130,6 +121,25 @@ class PendaftaranController extends Controller
                 'placeholder' => '',
                 'width' => 4,
                 'required' => true,
+            ),
+            array(
+                'label' => 'Waktu',
+                'field' => 'waktu',
+                'type' => 'select',
+                'placeholder' => 'Pilih Waktu',
+                'width' => 4,
+                'required' => true,
+                'options' => [
+                    '09:00' => '09:00',
+                    '10:00' => '10:00',
+                    '11:00' => '11:00',
+                    '12:00' => '12:00',
+                    '13:00' => '13:00',
+                    '14:00' => '14:00',
+                    '15:00' => '15:00',
+                    '16:00' => '16:00',
+                    '17:00' => '17:00',
+                ],
             ),
             array(
                 'label' => 'Keluhan',
@@ -159,16 +169,14 @@ class PendaftaranController extends Controller
     }
 
 
-    public function generateUniqueCode($id, $poli_id, $tanggal) {
+    public function generateUniqueCode($id, $tanggal) {
         $dokterPart = substr($id, -3);
 
-        $poli = Poli::find($poli_id);
-        
-        $namaPoli = $poli->kd_poli;
+
         $date = date('Ymd', strtotime($tanggal));
         
 
-        $uniqueCode = $namaPoli . $date . $dokterPart;
+        $uniqueCode = $date . $dokterPart;
 
         return $uniqueCode;
     }
@@ -176,9 +184,9 @@ class PendaftaranController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'poli_id' => 'required|exists:mspoli,id',
             'dokter_id' => 'required|exists:msdokter,id',
             'tanggal_daftar' => 'required|date',
+            'waktu' => 'required',
             'keluhan' => 'required|string',
         ]);
 
@@ -191,21 +199,20 @@ class PendaftaranController extends Controller
         }
 
         if (Pendaftaran::where('pasien_id', $request->no_rm)
-            ->where('poli_id', $request->poli_id)
+            ->where('dokter_id', $request->dokter_id)
             ->whereDate('tanggal_daftar', $request->tanggal_daftar)
             ->exists()) {
-            return response()->json(['error' => 'Pasien sudah terdaftar di poli ini untuk tanggal yang dipilih'], 421);
+            return response()->json(['error' => 'Pasien sudah terdaftar di dokter ini untuk tanggal yang dipilih'], 421);
         }
 
         $pendaftaranCount = Pendaftaran::whereDate('tanggal_daftar', $request->tanggal_daftar)
-                                ->where('poli_id', $request->poli_id)
                                 ->count();
         $dokterKD = str_pad($pendaftaranCount + 1, 4, '0', STR_PAD_LEFT);
 
         $pendaftaran = Pendaftaran::create([
-            'no_pendaftaran' => $this->generateUniqueCode($dokterKD, $request->poli_id, $request->tanggal_daftar),
+            'no_pendaftaran' => $this->generateUniqueCode($dokterKD, $request->tanggal_daftar),
             'pasien_id' => $request->no_rm,
-            'poli_id' => $request->poli_id,
+            'waktu' => $request->waktu,
             'dokter_id' => $request->dokter_id,
             'tanggal_daftar' => $request->tanggal_daftar,
             'keluhan' => $request->keluhan,
@@ -232,9 +239,7 @@ class PendaftaranController extends Controller
             return datatables()::of($data)
                     ->addIndexColumn()
 
-                    ->editColumn('poli_id', function($row) {
-                        return Poli::find($row->poli_id)->nama_poli;
-                    })
+
                     ->editColumn('dokter_id', function($row) {
                         return Dokter::find($row->dokter_id)->nama;
                     })
@@ -246,5 +251,15 @@ class PendaftaranController extends Controller
         }
 
         return view('pages.layanans.pendaftaran.listpendaftarans', ['title' => "Data Pendaftaran Pasien"]);
+    }
+
+    
+    public function getWaktuByTanggal(Request $request)
+    {
+        $tanggal = $request->tanggal;
+        $dokter_id = $request->dokter_id;
+        $waktu = Pendaftaran::whereDate('tanggal_daftar', $tanggal)->where('dokter_id', $dokter_id)->get()->pluck('waktu')->toArray();
+        $waktuTersedia = array_diff(['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'], $waktu);
+        return response()->json(['waktu' => $waktuTersedia], 200);
     }
 }

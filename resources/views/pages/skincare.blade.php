@@ -15,7 +15,7 @@
                     <!-- Page title actions -->
                     <div class="col-auto ms-auto d-print-none">
                         <div class="btn-list">
-                            <a href="javascript:void(0)" class="btn btn-gr d-none d-sm-inline-block" id="createNewUser">
+                            <a href="javascript:void(0)" class="btn btn-gr" id="createNewUser">
                                 <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
                                 <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24"
                                     viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
@@ -47,9 +47,10 @@
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Nama Poli</th>
-                            <th>Deskripsi</th>
-                            <th>Action</th>
+                            @foreach ($form as $key => $value)
+                                <th>{{ $value['label'] }}</th>
+                            @endforeach
+                            <th>Tindakan</th>
                         </tr>
                     </thead>
                 </table>
@@ -92,42 +93,58 @@
                         {
                             extend: 'excel',
                             text: '<i class="fas fa-file-excel"></i> Excel',
-                            className: 'btn btn-info btn-sm'
+                            className: 'btn btn-info btn-sm',
+                            exportOptions: {
+                                columns: ':not(:last-child)' // Exclude last column (action column)
+                            }
                         },
                         {
                             extend: 'pdf',
                             text: '<i class="fas fa-file-pdf"></i> PDF',
-                            className: 'btn btn-danger btn-sm'
+                            className: 'btn btn-danger btn-sm',
+                            exportOptions: {
+                                columns: ':not(:last-child)' // Exclude last column (action column)
+                            }
                         },
                         {
                             extend: 'print',
                             text: '<i class="fas fa-print"></i> Print',
-                            className: 'btn btn-secondary btn-sm'
+                            className: 'btn btn-secondary btn-sm',
+                            exportOptions: {
+                                columns: ':not(:last-child)' // Exclude last column (action column)
+                            }
                         }
                     ],
                 },
             },
             processing: true,
             serverSide: true,
-            ajax: "{{ route('datapolis.index') }}",
+            ajax: "{{ route('skincare.index') }}",
             columns: [{
                     data: 'id',
-                    name: 'id'
+                    name: 'id',
+                    render: function (data, type, row, meta) {
+                                return meta.row + 1;
+                            }
                 },
-                {
-                    data: 'poli_id',
-                    name: 'poli_id'
-                },
-                {
-                    data: 'dokter_id',
-                    name: 'dokter_id'
-                },
+                @foreach ($form as $key => $value)
+                    {
+                        data: '{{ $value['field'] }}',
+                        name: '{{ $value['field'] }}',
+                        @if ($value['type'] == 'file')
+                            render: function(data, type, row) {
+                                return '<div style="display: flex; align-items: center; justify-content: center;"><img src="data:image/png;base64,' + data + '" alt="Image" style="width: 50px; height: 50px;" /></div>';
+                            }
+                        @endif
+                    },
+                @endforeach
                 {
                     data: 'action',
                     name: 'action',
                     orderable: false,
                     searchable: false
                 },
+            
             ],
             responsive: true,
             scrollX: true,
@@ -142,69 +159,83 @@
             $('#ajaxModel').modal('show');
         });
 
+        $('body').on('click', '.editProduct', function () {
+            var user_id = $(this).data('id');
+            $.get("{{ route('skincare.index') }}" + '/' + user_id + '/edit', function (
+                data) {
+                $('#modelHeading').html("Edit {{ $title ?? env('APP_NAME') }}");
+                $('#saveBtn').val("edit-user");
+                $('#ajaxModel').modal('show');
+                $('#user_id').val(data.id);
+                @foreach ($form as $key => $value)
+                    if (data.{{ $value['field'] }}) {
+                        if ('{{ $value['type'] }}' === 'file') {
+                            $('#{{ $value['field'] }}').attr('src', 'data:image/png;base64,' + data.{{ $value['field'] }});
+                        } else if ('{{ $value['type'] }}' === 'select') {
+                            $('#{{ $value['field'] }}').val(data.{{ $value['field'] }}).trigger('change');
+                        } else {
+                            $('#{{ $value['field'] }}').val(data.{{ $value['field'] }});
+                        }
+                    }
+                @endforeach
+            })
+
+        });
 
         $('#saveBtn').click(function (e) {
             e.preventDefault();
             $('#saveBtn').html('Sending..');
 
             // Reset error messages
-            $('#nama_poliError').text('');
+            @foreach ($form as $key => $value)
+                $('#{{ $value['field'] }}Error').text('');
+            @endforeach
 
             var actionType = $(this).val();
-            var url = actionType === "create-user" ? "{{ route('datapolis.store') }}" :
-                "{{ route('datapolis.index') }}/" + $('#user_id').val();
+            var url = actionType === "create-user" ? "{{ route('skincare.store') }}" :
+                "{{ route('skincare.index') }}/" + $('#user_id').val();
 
             // Tentukan jenis permintaan (POST atau PUT)
-            var requestType = actionType === "create-user" ? "POST" : "PUT";
+            var requestType = actionType === "create-user" ? "POST" : "POST";
+
+            var formData = new FormData($('#userForm')[0]);
+
+            console.log('Form Data:', Array.from(formData.entries()));
+
 
             $.ajax({
-                data: $('#userForm').serialize(),
-                url: url,
-                type: requestType,
+                data: formData,
+                url: "{{ route('skincare.store') }}",
+                type: 'POST',
                 dataType: 'json',
+                processData: false,
+                contentType: false,
                 success: function (data) {
                     $('#userForm').trigger("reset");
                     $('#ajaxModel').modal('hide');
                     $('#laravel_datatable').DataTable().ajax.reload();
-                    $('#saveBtn').html('Save Changes');
+                    $('#saveBtn').html('Simpan Data');
 
                     // Tampilkan alert sukses
                     if (actionType === "create-user") {
-                        $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'success', 'message' => 'Obat baru ditambahkan!'])
-                            @endcomponent
-                        `);
+                        toastr.success('Skincare baru ditambahkan!');
                     } else {
-                        $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'success', 'message' => 'Obat diperbarui!'])
-                            @endcomponent
-                        `);
+                        toastr.success('Skincare diperbarui!');
                     }
-
-                    window.location.reload(true);
                 },
                 error: function (xhr) {
-                    $('#saveBtn').html('Save Changes');
+                    $('#saveBtn').html('Simpan Data');
 
                     // Tampilkan pesan error
                     if (xhr.status === 422) {
+                        // displayValidationErrors(xhr.responseJSON.errors);
                         let errors = xhr.responseJSON.errors;
-                        if (errors.poli_id) {
-                            $('#tipe_kamarError').text(errors.tipe_kamar[
-                                0]);
-                        }
-                        if (errors.dokter_id) {
-                            $('#fasilitasError').text(errors.fasilitas[0]);
-                        }
-
+                        $.each(xhr.responseJSON.errors, function (key, value) {
+                            $('#'+key+'Error').text(value[0]);
+                        });
                     } else {
-                        $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'danger', 'message' => 'Obat gagal ditambahkan!'])
-                            @endcomponent
-                        `);
+                        toastr.error('Skincare gagal ditambahkan!');
                     }
-
-                    window.location.reload(true);
                 }
             });
         });
@@ -218,30 +249,19 @@
         $('#confirmDeleteBtn').off('click').on('click', function () {
             $.ajax({
                 type: 'DELETE',
-                url: "{{ route('datapolis.index') }}/" + user_id,
+                url: "{{ route('skincare.index') }}/" + user_id,
                 success: function (data) {
-
                     $('#laravel_datatable').DataTable().ajax.reload();
                     $('#confirmDeleteModal').modal('hide');
-                    // document.location.reload(true);
 
                     // Tampilkan alert sukses
-                    $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'success', 'message' => 'Obat berhasil dihapus!'])
-                            @endcomponent
-                        `);
-
-                    window.location.reload(true);
-                    
+                    toastr.success('Skincare berhasil dihapus!');
                 },
                 error: function (xhr) {
                     $('#confirmDeleteModal').modal('hide');
 
                     // Tampilkan alert error
-                    $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'danger', 'message' => 'Obat gagal dihapus!'])
-                            @endcomponent
-                        `);
+                    toastr.error('Obat gagal dihapus!');
                 }
             });
         });

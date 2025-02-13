@@ -1,12 +1,5 @@
 <!doctype html>
-<!--
-* Tabler - Premium and Open Source dashboard template with responsive and high quality UI.
-* @version 1.0.0-beta20
-* @link https://tabler.io
-* Copyright 2018-2023 The Tabler Authors
-* Copyright 2018-2023 codecalm.net Paweł Kuna
-* Licensed under MIT (https://github.com/tabler/tabler/blob/master/LICENSE)
--->
+
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
@@ -32,21 +25,21 @@
       }
 
       .btn-gr {
-            background-color: #007037;
+            background-color: #CAAC14;
             color: white;
         }
 
         .btn-outline-gr {
-            --tblr-btn-color: #007037;
+            --tblr-btn-color: #CAAC14;
             --tblr-btn-bg: transparent;
-            --tblr-btn-border-color: #007037;
+            --tblr-btn-border-color: #CAAC14;
             --tblr-btn-hover-color: var(--tblr-primary-fg);
             --tblr-btn-hover-border-color: transparent;
-            --tblr-btn-hover-bg: #007037;
+            --tblr-btn-hover-bg: #CAAC14;
             --tblr-btn-active-color: var(--tblr-primary-fg);
-            --tblr-btn-active-bg: #007037;
-            --tblr-btn-disabled-color: #007037;
-            --tblr-btn-disabled-border-color: #007037;
+            --tblr-btn-active-bg: #CAAC14;
+            --tblr-btn-disabled-color: #CAAC14;
+            --tblr-btn-disabled-border-color: #CAAC14;
         }
     </style>
   </head>
@@ -57,7 +50,7 @@
         <div class="container container-tight my-5 px-lg-5">
             <x-auth-session-status class="mb-4" :status="session('status')" />
           <div class="text-center mb-4">
-            <a href="." class="navbar-brand navbar-brand-autodark"><img src="{{ asset('dist/img/miniopnicare.png') }}" height="46" alt=""></a>
+            <a href="." class="navbar-brand navbar-brand-autodark"><img src="{{ asset('images/venora_logo.png') }}" height="100" alt=""></a>
           </div>
           <h2 class="h3 text-center mb-3">
             Login to your account

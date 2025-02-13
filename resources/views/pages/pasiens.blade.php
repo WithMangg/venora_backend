@@ -15,7 +15,7 @@
                     <!-- Page title actions -->
                     <div class="col-auto ms-auto d-print-none">
                         <div class="btn-list">
-                            <a href="javascript:void(0)" class="btn btn-gr d-none d-sm-inline-block" id="createNewUser">
+                            <a href="javascript:void(0)" class="btn btn-gr" id="createNewUser">
                                 <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
                                 <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24"
                                     viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
@@ -85,36 +85,45 @@
 
                 $('#laravel_datatable').DataTable({
                     layout: {
-                topStart: {
-                    buttons: [
-                        {
-                            extend: 'copy',
-                            text: '<i class="fas fa-copy"></i> Copy',
-                            className: 'btn btn-primary btn-sm'
+                        topStart: {
+                            buttons: [
+                                {
+                                    extend: 'copy',
+                                    text: '<i class="fas fa-copy"></i> Copy',
+                                    className: 'btn btn-primary btn-sm'
+                                },
+                                {
+                                    extend: 'csv',
+                                    text: '<i class="fas fa-file-csv"></i> CSV',
+                                    className: 'btn btn-success btn-sm'
+                                },
+                                {
+                                    extend: 'excel',
+                                    text: '<i class="fas fa-file-excel"></i> Excel',
+                                    className: 'btn btn-info btn-sm',
+                                    exportOptions: {
+                                        columns: ':not(:last-child)' // Exclude last column (action column)
+                                    }
+                                },
+                                {
+                                    extend: 'pdf',
+                                    text: '<i class="fas fa-file-pdf"></i> PDF',
+                                    className: 'btn btn-danger btn-sm',
+                                    exportOptions: {
+                                        columns: ':not(:last-child)' // Exclude last column (action column)
+                                    }
+                                },
+                                {
+                                    extend: 'print',
+                                    text: '<i class="fas fa-print"></i> Print',
+                                    className: 'btn btn-secondary btn-sm',
+                                    exportOptions: {
+                                        columns: ':not(:last-child)' // Exclude last column (action column)
+                                    }
+                                }
+                            ],
                         },
-                        {
-                            extend: 'csv',
-                            text: '<i class="fas fa-file-csv"></i> CSV',
-                            className: 'btn btn-success btn-sm'
-                        },
-                        {
-                            extend: 'excel',
-                            text: '<i class="fas fa-file-excel"></i> Excel',
-                            className: 'btn btn-info btn-sm'
-                        },
-                        {
-                            extend: 'pdf',
-                            text: '<i class="fas fa-file-pdf"></i> PDF',
-                            className: 'btn btn-danger btn-sm'
-                        },
-                        {
-                            extend: 'print',
-                            text: '<i class="fas fa-print"></i> Print',
-                            className: 'btn btn-secondary btn-sm'
-                        }
-                    ],
-                },
-            },
+                    },
                     processing: true,
                     serverSide: true,
                     ajax: "{{ route('pasiens.index') }}",

@@ -102,5 +102,12 @@ class MenuController extends Controller
         return response()->json(['success' => 'Menu updated successfully.']);
     }
 
+    public function destroy($id)
+    {
+        $menu = Menu::findOrFail($id);
+        $menu->delete();
+        return response()->json(['success' => 'Menu deleted successfully.']);
+    }
+
     
 }

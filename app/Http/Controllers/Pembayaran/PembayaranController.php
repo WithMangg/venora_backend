@@ -4,8 +4,14 @@ namespace App\Http\Controllers\Pembayaran;
 
 use App\Http\Controllers\Controller;
 use App\Models\Diagnosa;
+use App\Models\Dokter;
+use App\Models\FacialTreatment;
 use App\Models\Obat;
+use App\Models\Pasien;
 use App\Models\Pembayaran;
+use App\Models\Pemeriksaan;
+use App\Models\Pendaftaran;
+use App\Models\Skincare;
 use Illuminate\Http\Request;
 
 class PembayaranController extends Controller
@@ -34,7 +40,27 @@ class PembayaranController extends Controller
 
                             return $btn;
                     })
-                    ->rawColumns(['action'])
+                    ->addColumn('noPembayaran', function($row) {
+                        if (!$row->no_pemeriksaan) {
+                            return $row->no_pembayaran . '<br> <span style="color: #6c757d">No. Pendaftaran: ' . "Tidak Tersedia" . '</span>';
+
+                        }
+                        $pemeriksaan = Pemeriksaan::find($row->no_pemeriksaan)->value('pemeriksaan_kdPendaftaran') ?? '-';
+                        $pendaftaran = Pendaftaran::find($pemeriksaan)->value('no_pendaftaran') ?? '-';
+                        return $row->no_pembayaran . '<br> <span style="color: #6c757d">No. Pendaftaran: ' . $pendaftaran . '</span>';
+                    })
+                    ->editColumn('nama_pasien', function($row) {
+                        $pasien = Pasien::find($row->pasien_id)->first();
+                        return $pasien->nama_pasien . '<br> <span style="color: #6c757d">No.RM: ' . $pasien->no_rm . '</span>';
+                    })
+                    ->editColumn('total', function($row) {
+                        return 'Rp. ' . number_format($row->total, 0, ',', '.');
+                    })
+                    ->editColumn('status', function($row) {
+                        return '<span class="badge ' . ($row->status === 'Sudah Bayar' ? 'border-success text-success' : 'border-danger text-danger') . '">' . $row->status . '</span>';
+                    })
+
+                    ->rawColumns(['action', 'status', 'nama_pasien', 'dokter', 'noPembayaran'])
                     
                     ->make(true);
         }
@@ -45,23 +71,32 @@ class PembayaranController extends Controller
     public function edit($id) {
         $pembayaran = Pembayaran::find($id);
 
-        $kodetindakan = json_decode($pembayaran->tindakan_medis);
-        // dd($kodeResep);
+        $dokter = Dokter::find($pembayaran->dokter);
+        $pembayaran->dokter = $dokter ? $dokter->nama : '-';
 
-        $tindakan_medis = Diagnosa::whereIn('kd_diagnosa', $kodetindakan)->get();
+        if (!$pembayaran) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Data tidak ditemukan'
+            ]);
+        }
+
+        $pasien = Pasien::find($pembayaran->pasien_id);
+        $treatment = FacialTreatment::where('facialTreatment_id', $pembayaran->treatment)->get();
         
-        $kodeResep = json_decode($pembayaran->resep_obat);
-        $jumlah_obat = json_decode($pembayaran->jumlah_obat);
-        $obat = Obat::whereIn('medicine_id', $kodeResep)->get();
+        $kodeSkincare = json_decode($pembayaran->skincare);
+        $jumlahSkincare = json_decode($pembayaran->jumlahSkincare);
+        $skincare = Skincare::whereIn('skincare_id', $kodeSkincare)->get();
         
         return response()->json(
             [
-                'info' => $pembayaran,
                 'status' => true,
                 'message' => 'Success',
-                'tindakan_medis' => $tindakan_medis,
-                'obats' => $obat,
-                'jumlah_obat' => $jumlah_obat
+                'info' => $pembayaran,
+                'pasien' => $pasien,
+                'treatment' => $treatment,
+                'skincares' => $skincare,
+                'jumlah_obat' => $jumlahSkincare
 
             ]
         );

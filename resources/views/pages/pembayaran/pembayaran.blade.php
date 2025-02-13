@@ -46,7 +46,6 @@
                                         <th>ID</th>
                                         <th>No. Transaksi</th>
                                         <th>Nama Pasien</th>
-                                        <th>Nakes</th>
                                         <th>Tanggal</th>
                                         <th>Total</th>
                                         <th>Status</th>
@@ -65,7 +64,6 @@
                                         <th>ID</th>
                                         <th>No. Transaksi</th>
                                         <th>Nama Pasien</th>
-                                        <th>Nakes</th>
                                         <th>Tanggal</th>
                                         <th>Total</th>
                                         <th>Status</th>
@@ -112,10 +110,9 @@
                 $('#dataModalLabel').text("Detail Pembayaran - " + data.info.no_pembayaran);
 
                 $('#no_pembayaran').text(data.info.no_pembayaran);
-                $('#no_diagnosa').text(data.info.no_diagnosa);
-                $('#no_rm').text(data.info.no_rm);
-                $('#nama_pasien').text(data.info.nama_pasien);
-                $('#poli').text(data.info.poli);
+                // $('#no_diagnosa').text(data.info.no_diagnosa);
+                $('#no_rm').text(data.pasien.no_rm);
+                $('#nama_pasien').text(data.pasien.nama_pasien);
                 $('#dokter').text(data.info.dokter);
                 $('#tanggal_pemeriksaan').text(data.info.tanggal_pemeriksaan);
                 
@@ -123,14 +120,14 @@
                 $('#tindakanTable tbody').empty();
 
                 // Tambahkan data obat/tindakan medis ke tabel
-                if (data.tindakan_medis.length > 0) {
-                    data.tindakan_medis.forEach(function (item, index) {
+                if (data.treatment.length > 0) {
+                    data.treatment.forEach(function (item, index) {
                         $('#tindakanTable tbody').append(`
                             <tr>
                                 <td>${index + 1}</td>
-                                <td colspan="2">${item.diagnosa} - ${item.kategori}</td>
+                                <td colspan="2">Paket Treatment - ${item.facialTreatment_nama}</td>
                             
-                                <td><span style="float: left;">Rp.</span><span style="float: right;">${item.harga.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</span></td>
+                                <td><span style="float: left;">Rp.</span><span style="float: right;">${item.facialTreatment_harga.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</span></td>
                             </tr>
                         `);
                     });
@@ -138,7 +135,7 @@
 
                 }
 
-                if (data.obats.length > 0) {
+                if (data.skincares.length > 0) {
                     $('#tindakanTable tbody').append(`
                         <tr></tr>
                         <tr>
@@ -146,13 +143,13 @@
                             <td colspan="3" style="text-align: left; font-weight: bold">Daftar Obat</td>
                         </tr>
                     `);
-                    data.obats.forEach(function (item, index) {
+                    data.skincares.forEach(function (item, index) {
                         $('#tindakanTable tbody').append(`
                             <tr>
                                 <td>${index + 1}</td>
-                                <td>${item.nama_obat}</td>
+                                <td>${item.skincare_nama}</td>
                                 <td style="text-align: right;">${data.jumlah_obat[index]}</td>
-                                <td><span style="float: left;">Rp.</span><span style="float: right;">${item.harga.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</span></td>
+                                <td><span style="float: left;">Rp.</span><span style="float: right;">${item.skincare_harga.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</span></td>
 
                             </tr>
                         `);
@@ -196,14 +193,9 @@
             var total = $('#totalharga').val(); //50000
             console.log(total, bayar);
             if (parseInt(bayar) < parseInt(total)) {
-                var alertHtml = `
-                    @component('components.popup.alert', ['type' => 'danger', 'message' => 'Bayar harus lebih tinggi dari total!'])
-                    @endcomponent
-                `;
+                toastr.error('Bayar harus lebih tinggi dari total!');
                 $('#saveBtn').html('Simpan Data');
                 
-                // Tambahkan alert baru ke dalam placeholder
-                $('#alertPlaceholder').append(alertHtml);
             } else {
                 $.ajax({
                     data: {
@@ -220,9 +212,10 @@
                         $('#saveBtn').html('Simpan Data');
 
 
-                            $('#alertPlaceholder').html(`
-                        @component('components.popup.alert', ['type' => 'success', 'message' => 'Layanan diperbarui!'])
-                        @endcomponent`);
+                        toastr.success('Layanan diperbarui!');
+
+                        setTimeout(function(){ location.reload(); }, 1000);
+
                     },
                     error: function (xhr) {
                         $('#saveBtn').html('Simpan Data');
@@ -234,10 +227,7 @@
                                 $('#bayarError').text(errors.bayar[0]);
                             }
                         } else {
-                            $('#alertPlaceholder').html(`
-                        @component('components.popup.alert', ['type' => 'danger', 'message' => 'Pembayaran gagal Diperbarui!'])
-                        @endcomponent
-                    `);
+                            toastr.error('Pembayaran gagal Diperbarui!');
                         }
                     }
                 });
@@ -270,30 +260,19 @@
             columns: [
                 { data: 'id', name: 'id', render: (data, type, row, meta) => meta.row + 1 },
                 { 
-                    data: 'no_pembayaran', 
-                    name: 'no_pembayaran', 
-                    render: (data, type, row, meta) => `${data}<br> <span style="color: #6c757d">No. Diagnosa: ${row.no_diagnosa}</span>`
+                    data: 'noPembayaran', 
+                    name: 'noPembayaran', 
                 },
                 // { data: 'no_diagnosa', name: 'no_diagnosa' },
-                { data: 'nama_pasien', name: 'nama_pasien',
-                    render: (data, type, row, meta) => `${data}<br> <span style="color: #6c757d">No.RM: ${row.no_rm}</span>`
-                 },
-                { 
-                    data: 'dokter', 
-                    name: 'dokter',
-                    render: (data, type, row, meta) => `${data}<br> <span style="color: #6c757d">Poli: ${row.poli}</span>`
-
-                },
+                { data: 'nama_pasien', name: 'nama_pasien'},
                 { data: 'tanggal_pemeriksaan', name: 'tanggal_pemeriksaan' },
                 { 
                     data: 'total', 
-                    name: 'total', 
-                    render: (data) => `Rp. ${data.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`
+                    name: 'total'
                 },
                 {
                     data: 'status', 
                     name: 'status', 
-                    render: (data) => `<span class="badge ${data === 'Sudah Bayar' ? 'border-success text-success' : 'border-danger text-danger'}">${data}</span>`
                 },
                 { data: 'action', name: 'action', orderable: false, searchable: false }
             ],

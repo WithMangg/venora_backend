@@ -111,15 +111,6 @@ class CekPendaftaranController extends Controller
 
         $this->form2 = array(
             array(
-                'label' => 'Poli',
-                'field' => 'poli_id',
-                'type' => 'text',
-                'placeholder' => '',
-                'width' => 6,
-                'disabled' => true,
-
-            ),
-            array(
                 'label' => 'Dokter',
                 'field' => 'dokter_id',
                 'type' => 'text',
@@ -153,6 +144,15 @@ class CekPendaftaranController extends Controller
                 'label' => 'Tanggal Daftar',
                 'field' => 'tanggal_daftar',
                 'type' => 'date',
+                'placeholder' => '',
+                'width' => 12,
+                'disabled' => true,
+
+            ),
+            array(
+                'label' => 'Waktu',
+                'field' => 'waktu',
+                'type' => 'text',
                 'placeholder' => '',
                 'width' => 12,
                 'disabled' => true,
@@ -210,7 +210,6 @@ class CekPendaftaranController extends Controller
         $pendaftaran = Pendaftaran::where('no_pendaftaran', $no_pendaftaran)
             ->leftjoin('mspasien', 'data_pendaftaran.pasien_id', '=', 'mspasien.no_rm')
             ->leftjoin('msdokter', 'data_pendaftaran.dokter_id', '=', 'msdokter.id')
-            ->leftjoin('mspoli', 'data_pendaftaran.poli_id', '=', 'mspoli.id')
             ->select('*', 'data_pendaftaran.status as status_pendaftaran')
             ->first();
         
@@ -230,7 +229,7 @@ class CekPendaftaranController extends Controller
             'no_hp' => $pendaftaran->no_hp,
             'tanggal_lahir' => $pendaftaran->tanggal_lahir,
             'jk' => $pendaftaran->jk,
-            'poli_id' => $pendaftaran->nama_poli,
+            'waktu' => $pendaftaran->waktu,
             'dokter_id' => $pendaftaran->nama,
             'spesialis' => $pendaftaran->spesialisasi,
             'no_pendaftaran' => $pendaftaran->no_pendaftaran,
@@ -256,18 +255,16 @@ class CekPendaftaranController extends Controller
         }
 
         $pendaftaran = Pendaftaran::where('no_pendaftaran', $request->no_pendaftaran)
-        ->leftJoin('mspoli', 'data_pendaftaran.poli_id', 'mspoli.id')
-        ->select('data_pendaftaran.*', 'mspoli.nama_poli')
         ->first();
 
         $tanggal_sekarang = Carbon::now()->format('Y-m-d');
         if ($pendaftaran->tanggal_daftar == $tanggal_sekarang) {
 
-            $jumlahHariIni = Pendaftaran::whereDate('tanggal_daftar', $tanggal_sekarang)->where('poli_id', $pendaftaran->poli_id)->where('no_antrian', '!=', null)->count();
+            $jumlahHariIni = Pendaftaran::whereDate('tanggal_daftar', $tanggal_sekarang)->where('no_antrian', '!=', null)->count();
             // dd($jumlahHariIni);
             $noantrian = str_pad($jumlahHariIni + 1, 3, '0', STR_PAD_LEFT);
             // dd($noantrian, $jumlahHariIni);
-            $noantri = $this->generateUniqueCode($pendaftaran->poli_id, $noantrian);
+            $noantri = $this->generateUniqueCode($noantrian);
             $pendaftaran->update([
                 'status' => 'Dalam Antrian',
                 'no_antrian' => $noantri
@@ -283,14 +280,10 @@ class CekPendaftaranController extends Controller
         }
     }
 
-    public function generateUniqueCode($poli_id, $antrian) {
+    public function generateUniqueCode($antrian) {
         $noantri = substr($antrian, -3);
-
-        $poli = Poli::find($poli_id);
         
-        $namaPoli = $poli->kd_poli;
-        
-        $uniqueCode = $namaPoli . $noantri;
+        $uniqueCode = 'VS' . $noantri;
         return $uniqueCode;
     }
 

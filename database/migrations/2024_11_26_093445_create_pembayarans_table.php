@@ -14,15 +14,14 @@ return new class extends Migration
         Schema::create('pembayarans', function (Blueprint $table) {
             $table->increments('id');
             $table->string('no_pembayaran');
-            $table->string('no_diagnosa');
-            $table->string('no_rm');
-            $table->string('nama_pasien');
-            $table->string('poli');
+            $table->integer('no_pemeriksaan');
+            $table->unsignedInteger('pasien_id');
+            $table->foreign('pasien_id')->references('id')->on('mspasien')->onDelete('cascade');
             $table->string('dokter');
             $table->string('tanggal_pemeriksaan');
-            $table->string('tindakan_medis')->nullable();
-            $table->string('resep_obat')->nullable();
-            $table->string('jumlah_obat')->nullable();
+            $table->text('treatment')->nullable();
+            $table->text('skincare')->nullable();
+            $table->text('jumlahSkincare')->nullable();
             $table->string('total')->nullable();
             $table->string('bayar')->nullable();
             $table->string('kembali')->nullable();

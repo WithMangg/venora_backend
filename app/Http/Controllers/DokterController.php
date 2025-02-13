@@ -87,13 +87,6 @@ class DokterController extends Controller
 
             ),
             array(
-                'label' => 'Pekerjaan',
-                'field' => 'pekerjaan',
-                'type' => 'text',
-                'width' => 6,
-                'placeholder' => '',
-            ),
-            array(
                 'label' => 'Kewarganegaraan',
                 'field' => 'kewarganegaraan',
                 'type' => 'text',
@@ -127,17 +120,11 @@ class DokterController extends Controller
                 'field' => 'spesialisasi',
                 'width' => 6,
                 'type' => 'select',
-                'placeholder' => '',
+                'placeholder' => 'Pilih Spesialisasi Dokter',
                 'required' => true,
                 'options' => [
-                    'Dokter Umum' => 'Dokter Umum',
-                    'Dokter Anak' => 'Dokter Anak',
-                    'Dokter Bedah' => 'Dokter Bedah',
-                    'Dokter Gigi' => 'Dokter Gigi',
-                    'Dokter Jantung' => 'Dokter Jantung',
-                    'Dokter Kulit' => 'Dokter Kulit',
-                    'Dokter Mata' => 'Dokter Mata',
-                    'Dokter THT' => 'Dokter THT'
+                    'Dokter Spesialis Kulit' => 'Dokter Spesialis Kulit',
+                    'Dokter Kecantikan' => 'Dokter Kecantikan',
                 ],
             ),
             array(
@@ -147,6 +134,7 @@ class DokterController extends Controller
                 'width' => 6,
                 'placeholder' => 'Masukan Status',
                 'required' => true,
+                'default' => 'aktif',
                 'options' => [
                     'aktif' => 'Aktif',
                     'tidak' => 'Tidak Aktif'
@@ -236,7 +224,7 @@ class DokterController extends Controller
         );
 
         $addUser = User::updateOrCreate(
-            ['id' => $request->user_id],
+            ['email' => $request->email],
             ['name' => $request->nama,
              'email' => $request->email, 
              'password' => bcrypt('password'),

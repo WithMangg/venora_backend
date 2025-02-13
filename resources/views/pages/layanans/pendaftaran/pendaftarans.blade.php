@@ -123,13 +123,7 @@ $(document).ready(function () {
         var no_rm = $('#no_rm').val();
 
         if (!no_rm) {
-            var alertHtml = `
-                @component('components.popup.alert', ['type' => 'danger', 'message' => 'No. Rekam Medis harus diisi!'])
-                @endcomponent
-            `;
-            
-            // Tambahkan alert baru ke dalam placeholder
-            $('#alertPlaceholder').append(alertHtml);
+            toastr.error('No. Rekam Medis harus diisi!');
 
             return false;
         }
@@ -140,13 +134,8 @@ $(document).ready(function () {
         $.get("{{ route('pendaftarans.show', '') }}" + '/' + no_rm, function (data) {
 
             if (data) {
-                var suksesHtml = `
-                    @component('components.popup.alert', ['type' => 'success', 'message' => 'Pasien ditemukan!'])
-                    @endcomponent
-                `;
-                
-                // Tambahkan alert baru ke dalam placeholder
-                $('#alertPlaceholder').append(suksesHtml);
+                toastr.success('Pasien ditemukan!');
+            
 
                 $('#nik').val(data.nik);
                 $('#nama_pasien').val(data.nama_pasien);
@@ -161,13 +150,7 @@ $(document).ready(function () {
 
                 $('#userForm').find('input, select, textarea, button').prop('disabled', false);
             } else {
-                var pasienHtml = `
-                    @component('components.popup.alert', ['type' => 'danger', 'message' => 'Pasien tidak ditemukan!'])
-                    @endcomponent
-                `;
-                
-                // Tambahkan alert baru ke dalam placeholder
-                $('#alertPlaceholder').append(pasienHtml);
+                toastr.error('Pasien tidak ditemukan!');
 
                 $('#userForm').find('input, select, textarea, button').prop('disabled', true);
             }
@@ -176,13 +159,7 @@ $(document).ready(function () {
             $('#loadingModal').modal('hide');
 
         }).fail(function() {
-            var errorHtml = `
-                @component('components.popup.alert', ['type' => 'danger', 'message' => 'Terjadi kesalahan saat mengambil data!'])
-                @endcomponent
-            `;
-                
-            // Tambahkan alert baru ke dalam placeholder
-            $('#alertPlaceholder').append(errorHtml);
+            toastr.error('Terjadi kesalahan saat mengambil data!');
 
             $('#userForm').find('input, select, textarea, button').prop('disabled', true);
 
@@ -198,20 +175,35 @@ $(document).ready(function () {
         });
     });
 
-    $('#poli_id').on('change', function() {
-        var poliId = $(this).val();
+    $('#dokter_id').on('change', function() {
+        $('#tanggal_daftar').attr('type', 'date');
+        $('#tanggal_daftar').attr('min', new Date().toISOString().split('T')[0]);
+    });
+
+    $('#tanggal_daftar').on('change', function() {
+        var dokterId = $('#dokter_id').val();
+        var tanggal = $('#tanggal_daftar').val();
         $.ajax({
-            type: 'GET',
-            url: "/data/datapolis/getDokterByPoliId/" + poliId,
+            type: 'POST',
+            url: "{{ route('pendaftarans.getwaktubytanggal') }}",
+            data: {
+                tanggal: tanggal,
+                dokter_id: dokterId
+            },
             success: function(data) {
-                $('#dokter_id').empty();
-                if (data.length > 0) {
-                    $('#dokter_id').append('<option value="" selected>Pilih Dokter</option>');
-                    $.each(data, function(index, value) {
-                        $('#dokter_id').append('<option value="' + value.id + '">' + value.nama + '</option>');
+                $('#waktu').empty();
+                if (data.waktu) {
+                    $('#waktu').append('<option value="" selected>Pilih Jam</option>');
+                    var now = new Date().getHours() + ':' + new Date().getMinutes();
+                    $.each(data.waktu, function(index, value) {
+                        if (value > now) {
+                            $('#waktu').append('<option value="' + value + '">' + value + '</option>');
+                        }
                     });
+                    toastr.success('Jam tersedia!');
                 } else {
-                    $('#dokter_id').append('<option value="" selected>Tidak ada dokter</option>');
+                    $('#waktu').append('<option value="" selected>Tidak ada jam tersedia</option>');
+                    toastr.error('Tidak ada jam tersedia!');
                 }
             }
         });
@@ -223,7 +215,7 @@ $(document).ready(function () {
 
         // Reset error messages
         $('#no_rmError').text('');
-        $('#poli_idError').text('');
+        $('#waktuError').text('');
         $('#dokter_idError').text('');
         $('#tanggal_daftarError').text('');
         $('#keluhanError').text('');
@@ -231,7 +223,7 @@ $(document).ready(function () {
         $.ajax({
             data: {
                 no_rm: $('#no_rm').val(),
-                poli_id: $('#poli_id').val(),
+                waktu: $('#waktu').val(),
                 dokter_id: $('#dokter_id').val(),
                 tanggal_daftar: $('#tanggal_daftar').val(),
                 keluhan: $('#keluhan').val()
@@ -249,10 +241,7 @@ $(document).ready(function () {
 
                 // Tampilkan alert sukses
                 
-                $('#alertPlaceholder').html(`
-                    @component('components.popup.alert', ['type' => 'success', 'message' => 'Pendaftaran berhasil!'])
-                    @endcomponent
-                `);
+                toastr.success('Pendaftaran berhasil!');
                 
                 document.getElementById("no_pendaftaranstruk").innerHTML = data.no_pendaftaran;
                 document.getElementById("nama_dokterstruk").innerHTML = data.nama_dokter;
@@ -270,21 +259,15 @@ $(document).ready(function () {
                 $('#saveBtn').html('Save Changes');
 
                 if (xhr.status === 421) {
-                    var alertHtml = `
-                        @component('components.popup.alert', ['type' => 'danger', 'message' => 'Pasien sudah terdaftar di poli ini untuk tanggal yang dipilih!'])
-                        @endcomponent
-                    `;
-                    
-                    // Tambahkan alert baru ke dalam placeholder
-                    $('#alertPlaceholder').append(alertHtml);
+                    toastr.error('Pasien sudah terdaftar di poli ini untuk tanggal yang dipilih!');
 
                 } else if (xhr.status === 422) {
                     let errors = xhr.responseJSON.errors;
                     if (errors.no_rm) {
                         $('#no_rmError').text(errors.no_rm[0]);
                     }
-                    if (errors.poli_id) {
-                        $('#poli_idError').text(errors.poli_id[0]);
+                    if (errors.waktu) {
+                        $('#waktuError').text(errors.waktu[0]);
                     }
                     if (errors.dokter_id) {
                         $('#dokter_idError').text(errors.dokter_id[0]);
@@ -299,10 +282,7 @@ $(document).ready(function () {
                   
                     
                 } else {
-                    $('#alertPlaceholder').html(`
-                        @component('components.popup.alert', ['type' => 'danger', 'message' => 'Pendaftaran gagal ditambahkan!'])
-                        @endcomponent
-                    `);
+                    toastr.error('Pendaftaran gagal ditambahkan!');
                 }
             }
         });

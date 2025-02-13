@@ -13,28 +13,20 @@ return new class extends Migration
     {
         Schema::create('pemeriksaan', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('kd_diagnosa');
-            $table->string('kd_pendaftaran');
-            $table->string('pasien_id');
-            $table->date('tanggal_diagnosa');
-            $table->text('keluhan_utama')->nullable();
-            $table->text('riwayat_penyakit_sekarang')->nullable();
-            $table->string('tinggi_badan')->nullable();
-            $table->string('berat_badan')->nullable();
-            $table->string('tekanan_darah')->nullable();
-            $table->string('suhu_tubuh')->nullable();
-            $table->string('nadi')->nullable();
-            $table->string('frekuensi_napas')->nullable();
-            $table->string('diagnosis_utama')->nullable();
-            $table->string('diagnosis_pendukung')->nullable();
-            $table->text('tindakan_medis')->nullable();
-            $table->text('resep_obat')->nullable();
-            $table->string('jumlah_obat')->nullable();
-            
-            $table->text('konsultasi_lanjutan')->nullable();
-            $table->string('rujukan')->default('Tidak');
-            $table->text('anjuran_dokter')->nullable();
-            $table->string('status_pulang')->nullable();
+            $table->integer('pemeriksaan_idPendaftaran')->unsigned()->index();
+            $table->foreign('pemeriksaan_kdPendaftaran')->references('id')->on('data_pendaftaran')->onDelete('cascade');
+
+            $table->unsignedInteger('pemeriksaan_idPasien')->index();
+            $table->foreign('pemeriksaan_idPasien')->references('id')->on('mspasien')->onDelete('cascade');
+
+            $table->string('pemeriksaan_keluhan');
+            $table->string('pemeriksaan_kondisiKulit');
+            $table->string('pemeriksaan_diagnosis');
+            $table->string('pemeriksaan_rekTreatment')->nullable();            
+            $table->text('pemeriksaan_rekSkincare')->nullable();
+            $table->text('pemeriksaan_jumlahSkincare')->nullable();
+
+            $table->string('pemeriksaan_note')->nullable();
             $table->timestamps();
         });
     }

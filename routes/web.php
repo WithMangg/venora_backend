@@ -6,11 +6,15 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Data\DataPoliController;
 use App\Http\Controllers\Data\DataRekamMedisController;
+use App\Http\Controllers\DataRiwayatPasienController;
 use App\Http\Controllers\DiagnosaController;
 use App\Http\Controllers\DokterController;
+use App\Http\Controllers\FacialTreatmentController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\KamarController;
 use App\Http\Controllers\layanan\CekPendaftaranController;
+use App\Http\Controllers\layanan\PembelianController;
+use App\Http\Controllers\layanan\PembelianSkincareController;
 use App\Http\Controllers\layanan\PemeriksaanPasienController;
 use App\Http\Controllers\layanan\PendaftaranController;
 use App\Http\Controllers\layanan\TransaksiController;
@@ -23,6 +27,7 @@ use App\Http\Controllers\setting\MenuRoleController;
 use App\Http\Controllers\setting\RiwayatController;
 use App\Http\Controllers\setting\SettingController;
 use App\Http\Controllers\setting\SettingPenggunaController;
+use App\Http\Controllers\SkincareController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\CheckUserRole;
 use App\Models\Pendaftaran;
@@ -69,16 +74,14 @@ Route::group(['middleware' => ['auth', 'CheckUserRole']], function () {
     Route::resource('masters/pasiens', PasienController::class);
 
     
-    Route::resource('masters/kamars', KamarController::class);
     Route::resource('masters/users', UserController::class);
 
     Route::resource('masters/dokters', DokterController::class);
 
-    Route::resource('masters/obats', ObatController::class);
+    Route::resource('masters/skincare', SkincareController::class);
+    Route::resource('masters/facialtreatment', FacialTreatmentController::class);
 
-    Route::resource('masters/polis', PoliController::class);
-
-    Route::resource('data/datapolis', DataPoliController::class);
+    Route::resource('data/riwayatpasien', DataRiwayatPasienController::class);
     Route::resource('data/datarekammedis', DataRekamMedisController::class);
 
     Route::resource('setting/settings', SettingController::class);
@@ -88,6 +91,7 @@ Route::group(['middleware' => ['auth', 'CheckUserRole']], function () {
     Route::resource('layanans/transaksis', TransaksiController::class);
 
     Route::resource('layanans/pendaftarans', PendaftaranController::class);
+    Route::resource('layanans/pembelian', PembelianController::class);
     Route::resource('layanans/cek-pendaftarans', CekPendaftaranController::class);
     Route::resource('layanans/pemeriksaan-pasien', PemeriksaanPasienController::class);
     Route::get('layanans/pemeriksaan-pasien/getDataDiagnosis/{pasien_id}', [PemeriksaanPasienController::class, 'getDataDiagnosis'])->name('layanans.pemeriksaan-pasien.getdatadiagnosis');
@@ -96,12 +100,10 @@ Route::group(['middleware' => ['auth', 'CheckUserRole']], function () {
     Route::POST('layanans/cek-pendaftarans/getInfoPendaftaran', [CekPendaftaranController::class, 'getInfoPendaftaran'])->name('pendaftarans.cekpendaftaran.getinfopendaftaran');
 
     Route::post('users/reset-password', [UserController::class, 'reset_password'])->name('users.reset_password');
-    Route::get('data/datapolis/getDokterByPoliId/{poliId}', [DataPoliController::class, 'getDokterByPoliId'])->name('data.datapolis.getDokterByPoliId');
+    Route::post('data/getWaktuByTanggal', [PendaftaranController::class, 'getWaktuByTanggal'])->name('pendaftarans.getwaktubytanggal');
     Route::get('data/data-pendaftarans', [PendaftaranController::class, 'getPendaftarans'])->name('pendaftarans.listpendaftarans');
 
-    Route::resource('data/diagnosas', DiagnosaController::class);
-    Route::POST('data/diagnosas/import', [DiagnosaController::class, 'import'])->name('diagnosas.import');
-    Route::get('api/diagnosas/diagnosisutamas', [DiagnosaController::class, 'getOptions'])->name('api.diagnosas.diagnosisutamas');
+
 
     Route::resource('transaksi/pembayarans', PembayaranController::class);
     Route::get('transaksi/pembayarans/checked', [PembayaranController::class, 'index2'])->name('pembayarans.index2');

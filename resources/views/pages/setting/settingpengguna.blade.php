@@ -1,7 +1,3 @@
-<?php 
-    $web = App\Models\SettingWeb::first();
-?>
-
 @extends('index')
 
 
@@ -32,8 +28,60 @@
             <h3 class="card-title">{{ $title ?? env('APP_NAME') }}</h3>
         </div>
         <div class="card-body">
-            <x-form_nomodal :form="$form" :title="$title ?? env('APP_NAME')" />
+            <form action="" id="userForm" name="userForm" class="form-horizontal">
+                <input type="text" class="form-control" id="id" name="id" value="{{ $model->id }}" hidden>
+                <div class="mb-3">
+                    <label class="form-label">Nama</label>
+                    <input type="text" class="form-control" id="name" name="name" placeholder="Nama" value="{{ $model->name }}" disabled>
+                    <span class="text-danger" id="nameError"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Email" value="{{ $model->email }}" disabled>
+                    <span class="text-danger" id="emailError"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password Lama</label>
+                    <input type="password" class="form-control" id="old_password" name="old_password" placeholder="Password Lama">
+                    <span class="text-danger" id="old_passwordError"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password Baru</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Password Baru">
+                    <span class="text-danger" id="passwordError"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Konfirmasi Password</label>
+                    <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="Konfirmasi Password">
+                    <span class="text-danger" id="password_confirmationError"></span>
+                </div>
+
+                <div class="mb-3"></div>
+                    <button type="submit" id="saveBtn" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
         </div>
+
+        <div class="card mt-5">
+            <div class="card-header">
+                <h3 class="card-title">Riwayat Perubahan Akun Personal</h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <table class="table" id="laravel_datatable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Aksi</th>
+                                <th>Keterangan</th>
+                                <th>Waktu</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
 
 
 
@@ -46,45 +94,31 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        $('#site_name').val('{{ $web->site_name }}');
-        $('#alamat').val('{{ $web->alamat }}');
-        $('#email').val('{{ $web->email }}');
-        $('#phone').val('{{ $web->phone }}');
-        $('#description').val('{{ $web->description }}');
-        $('#address').val('{{ $web->address }}');
-        
-
-
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
-
         $('#laravel_datatable').DataTable({
             processing: true,
             serverSide: true,
-            ajax: "{{ route('polis.index') }}",
+            ajax: "{{ route('setting-pengguna.index') }}",
             columns: [{
                     data: 'id',
-                    name: 'id'
+                    name: 'id',
+                    render: function (data, type, row, meta) {
+                        return meta.row + 1;
+                    }
                 },
-                {
-                    data: 'nama_poli',
-                    name: 'nama_poli'
-                },
-                {
-                    data: 'deskripsi',
-                    name: 'deskripsi'
-                },
-                {
-                    data: 'action',
-                    name: 'action',
-                    orderable: false,
-                    searchable: false
+                { data: 'aksi', name: 'aksi' },
+                { data: 'keterangan', name: 'keterangan' },
+                { 
+                    data: 'created_at', 
+                    name: 'created_at',
                 },
             ],
+            order: [[ 0, "desc" ]], 
             responsive: true,
             scrollX: true,
 
@@ -96,31 +130,30 @@
             $('#saveBtn').html('Sending..');
 
             // Reset error messages
-            $('#site_nameError').text('');
-            $('#faviconError').text('');
-            $('#logoError').text('');
-
+            $('#nameError').text('');
+            $('#old_passwordError').text('');
+            $('#passwordError').text('');
+            $('#password_confirmationError').text('');
 
             var formData = new FormData($('#userForm')[0]);
-            
 
             $.ajax({
                 data: formData,
-                url: "{{ route('settings.store') }}",
+                url: "{{ route('setting-pengguna.store') }}",
                 type: 'POST',
                 dataType: 'json',
                 processData: false,
                 contentType: false,
-                success: function (data) {
+                success: function (response) {
                     $('#saveBtn').html('Save Changes');
 
                     // Tampilkan alert sukses
-                    
-                    $('#alertPlaceholder').html(`
-                        @component('components.popup.alert', ['type' => 'success', 'message' => 'Pengaturan Web Berhasil diperbarui!'])
-                        @endcomponent
-                    `);
-                    
+                    if (response.success) {
+                        toastr.success(response.success);
+
+                        $('#laravel_datatable').DataTable().ajax.reload();
+                        
+                    }
                 },
                 error: function (xhr) {
                     $('#saveBtn').html('Save Changes');
@@ -128,61 +161,24 @@
                     // Tampilkan pesan error
                     if (xhr.status === 422) {
                         let errors = xhr.responseJSON.errors;
-                        if (errors.favicon) {
-                            $('#faviconError').text(errors.favicon[0]);
+                        if (errors.name) {
+                            $('#nameError').text(errors.name[0]);
                         }
-                        if (errors.logo) {
-                            $('#logoError').text(errors.logo[0]);
+                        if (errors.email) {
+                            $('#emailError').text(errors.email[0]);
                         }
-                        if (errors.site_name) {
-                            $('#site_nameError').text(errors.site_name[0]);
+                        if (errors.old_password) {
+                            $('#old_passwordError').text(errors.old_password[0]);
                         }
-
+                        if (errors.password) {
+                            $('#passwordError').text(errors.password[0]);
+                        }
+                        if (errors.password_confirmation) {
+                            $('#password_confirmationError').text(errors.password_confirmation[0]);
+                        }
                     } else {
-                        $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'danger', 'message' => 'Obat gagal ditambahkan!'])
-                            @endcomponent
-                        `);
+                        toastr.error(xhr.responseJSON.message);
                     }
-
-                }
-            });
-        });
-    });
-
-    $('body').on('click', '.deleteProduct', function () {
-        var user_id = $(this).data('id');
-        $('#confirmDeleteModal').modal('show');
-
-        // Handle konfirmasi hapus
-        $('#confirmDeleteBtn').off('click').on('click', function () {
-            $.ajax({
-                type: 'DELETE',
-                url: "{{ route('polis.index') }}/" + user_id,
-                success: function (data) {
-                    
-                    $('#laravel_datatable').DataTable().ajax.reload();
-                    $('#confirmDeleteModal').modal('hide');
-                    
-
-
-                    // Tampilkan alert sukses
-                    $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'success', 'message' => 'Obat berhasil dihapus!'])
-                            @endcomponent
-                        `);
-
-                        document.location.reload(true);
-                        window.location.reload(true);
-                },
-                error: function (xhr) {
-                    $('#confirmDeleteModal').modal('hide');
-
-                    // Tampilkan alert error
-                    $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'danger', 'message' => 'Obat gagal dihapus!'])
-                            @endcomponent
-                        `);
                 }
             });
         });

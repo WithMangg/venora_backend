@@ -45,8 +45,6 @@
 
     {{-- <link rel="stylesheet" type="text/css" href="/DataTables-2.1.7/extensions/Editor-2.3.2/css/editor.bootstrap.css"> --}}
  
-
-
     <!-- CSS files -->
     <link href="{{ asset('dist/css/tabler.min.css?1692870487') }}" rel="stylesheet" />
     <link href="{{ asset('dist/css/tabler-flags.min.css?1692870487') }}" rel="stylesheet" />
@@ -79,25 +77,25 @@
         }
 
         .btn-gr {
-            background-color: #007037;
+            background-color: #CAAC14;
             color: white;
         }
 
         .btn-outline-gr {
-            --tblr-btn-color: #007037;
+            --tblr-btn-color: #CAAC14;
             --tblr-btn-bg: transparent;
-            --tblr-btn-border-color: #007037;
+            --tblr-btn-border-color: #CAAC14;
             --tblr-btn-hover-color: var(--tblr-primary-fg);
             --tblr-btn-hover-border-color: transparent;
-            --tblr-btn-hover-bg: #007037;
+            --tblr-btn-hover-bg: #CAAC14;
             --tblr-btn-active-color: var(--tblr-primary-fg);
-            --tblr-btn-active-bg: #007037;
-            --tblr-btn-disabled-color: #007037;
-            --tblr-btn-disabled-border-color: #007037;
+            --tblr-btn-active-bg: #CAAC14;
+            --tblr-btn-disabled-color: #CAAC14;
+            --tblr-btn-disabled-border-color: #CAAC14;
         }
 
         .navbar {
-            --tblr-navbar-active-border-color: #007037;
+            --tblr-navbar-active-border-color: #CAAC14;
         }
 
         .dtable-container {
@@ -113,18 +111,18 @@
 
 
         .navbar-vertical .nav-item .nav-link {
-            transition: background 0.2s ease, #007037 0.2s ease;
+            transition: background 0.2s ease, #CAAC14 0.2s ease;
             padding: 0.75rem 1rem;
             border-radius: 0.5rem;
         }
 
         .navbar-vertical .nav-item .nav-link:hover {
             background-color: #f1f5f9;
-            color: #007037;
+            color: #CAAC14;
         }
 
         .navbar-vertical .nav-item .icon {
-            color: #007037;
+            color: #CAAC14;
             transition: color 0.2s ease;
         }
 
@@ -141,6 +139,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.3/css/responsive.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/scroller/2.4.3/css/scroller.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css">
 
 
 
@@ -190,12 +189,9 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <h1 class="navbar-brand navbar-brand-autodark">
-                    <a href="{{ route('dashboard') }}">
-                        @if(isset($web) && $web->logo)
-                            <img src="data:image/png;base64,{{ $web->logo }}" width="150" height="48" alt="Opni Care" class="navbar-brand-image">
-                        @else
-                            <img src="{{ asset('dist/img/opnicare.png') }}" width="150" height="48" alt="Opni Care" class="navbar-brand-image">
-                        @endif
+                    <a href="{{ route('dashboard') }}" class="d-flex align-items-center">
+                        <img src="{{ asset('images/venora_logo.png') }}" width="150" height="75" alt="Venora System" class="navbar-brand-image me-3">
+                        <h3 class="mb-0 d-none d-sm-block">Venora System</h3>
                     </a>
                 </h1>
                 <div class="collapse navbar-collapse" id="sidebar-menu">
@@ -411,11 +407,8 @@
                             </div>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                            <a href="#" class="dropdown-item">Status</a>
-                            <a href="./profile.html" class="dropdown-item">Profile</a>
-                            <a href="#" class="dropdown-item">Feedback</a>
-                            <div class="dropdown-divider"></div>
-                            <a href="./settings.html" class="dropdown-item">Settings</a>
+                            
+                            <a href="{{ route('setting-pengguna.index')}}" class="dropdown-item">Settings</a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
             

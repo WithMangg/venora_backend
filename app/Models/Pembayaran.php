@@ -10,16 +10,13 @@ class Pembayaran extends Model
 
     protected $fillable = [
         'no_pembayaran',
-        'no_diagnosa',
-        'no_rm',
-        'nama_pasien',
-        'poli',
+        'no_pemeriksaan',
+        'pasien_id',
         'dokter',
         'tanggal_pemeriksaan',
-        'tindakan_medis',
-        'resep_obat',
-        'jumlah_obat',
-        
+        'treatment',
+        'skincare',
+        'jumlahSkincare',
         'total',
         'bayar',
         'kembali',

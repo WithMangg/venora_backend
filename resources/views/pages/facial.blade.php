@@ -15,7 +15,7 @@
                     <!-- Page title actions -->
                     <div class="col-auto ms-auto d-print-none">
                         <div class="btn-list">
-                            <a href="javascript:void(0)" class="btn btn-gr d-none d-sm-inline-block" id="createNewUser">
+                            <a href="javascript:void(0)" class="btn btn-gr" id="createNewUser">
                                 <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
                                 <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24"
                                     viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
@@ -47,9 +47,10 @@
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Nama Poli</th>
-                            <th>Deskripsi</th>
-                            <th>Action</th>
+                            @foreach ($form as $key => $value)
+                                <th>{{ $value['label'] }}</th>
+                            @endforeach
+                            <th>Tindakan</th>
                         </tr>
                     </thead>
                 </table>
@@ -92,24 +93,33 @@
                         {
                             extend: 'excel',
                             text: '<i class="fas fa-file-excel"></i> Excel',
-                            className: 'btn btn-info btn-sm'
+                            className: 'btn btn-info btn-sm',
+                            exportOptions: {
+                                columns: ':not(:last-child)' // Exclude last column (action column)
+                            }
                         },
                         {
                             extend: 'pdf',
                             text: '<i class="fas fa-file-pdf"></i> PDF',
-                            className: 'btn btn-danger btn-sm'
+                            className: 'btn btn-danger btn-sm',
+                            exportOptions: {
+                                columns: ':not(:last-child)' // Exclude last column (action column)
+                            }
                         },
                         {
                             extend: 'print',
                             text: '<i class="fas fa-print"></i> Print',
-                            className: 'btn btn-secondary btn-sm'
+                            className: 'btn btn-secondary btn-sm',
+                            exportOptions: {
+                                columns: ':not(:last-child)' // Exclude last column (action column)
+                            }
                         }
                     ],
                 },
             },
             processing: true,
             serverSide: true,
-            ajax: "{{ route('polis.index') }}",
+            ajax: "{{ route('facialtreatment.index') }}",
             columns: [{
                     data: 'id',
                     name: 'id',
@@ -117,20 +127,24 @@
                                 return meta.row + 1;
                             }
                 },
-                {
-                    data: 'nama_poli',
-                    name: 'nama_poli'
-                },
-                {
-                    data: 'deskripsi',
-                    name: 'deskripsi'
-                },
+                @foreach ($form as $key => $value)
+                    {
+                        data: '{{ $value['field'] }}',
+                        name: '{{ $value['field'] }}',
+                        @if ($value['type'] == 'file')
+                            render: function(data, type, row) {
+                                return '<div style="display: flex; align-items: center; justify-content: center;"><img src="data:image/png;base64,' + data + '" alt="Image" style="width: 50px; height: 50px;" /></div>';
+                            }
+                        @endif
+                    },
+                @endforeach
                 {
                     data: 'action',
                     name: 'action',
                     orderable: false,
                     searchable: false
                 },
+            
             ],
             responsive: true,
             scrollX: true,
@@ -147,15 +161,23 @@
 
         $('body').on('click', '.editProduct', function () {
             var user_id = $(this).data('id');
-            $.get("{{ route('polis.index') }}" + '/' + user_id + '/edit', function (
+            $.get("{{ route('facialtreatment.index') }}" + '/' + user_id + '/edit', function (
                 data) {
                 $('#modelHeading').html("Edit {{ $title ?? env('APP_NAME') }}");
                 $('#saveBtn').val("edit-user");
                 $('#ajaxModel').modal('show');
                 $('#user_id').val(data.id);
-                $('#kd_poli').val(data.kd_poli);
-                $('#nama_poli').val(data.nama_poli);
-                $('#deskripsi').val(data.deskripsi);
+                @foreach ($form as $key => $value)
+                    if (data.{{ $value['field'] }}) {
+                        if ('{{ $value['type'] }}' === 'file') {
+                            $('#{{ $value['field'] }}').attr('src', 'data:image/png;base64,' + data.{{ $value['field'] }});
+                        } else if ('{{ $value['type'] }}' === 'select') {
+                            $('#{{ $value['field'] }}').val(data.{{ $value['field'] }}).trigger('change');
+                        } else {
+                            $('#{{ $value['field'] }}').val(data.{{ $value['field'] }});
+                        }
+                    }
+                @endforeach
             })
 
         });
@@ -165,22 +187,29 @@
             $('#saveBtn').html('Sending..');
 
             // Reset error messages
-            $('#nama_poliError').text('');
-            $('#kd_poliError').text('');
-
+            @foreach ($form as $key => $value)
+                $('#{{ $value['field'] }}Error').text('');
+            @endforeach
 
             var actionType = $(this).val();
-            var url = actionType === "create-user" ? "{{ route('polis.store') }}" :
-                "{{ route('polis.index') }}/" + $('#user_id').val();
+            var url = actionType === "create-user" ? "{{ route('facialtreatment.store') }}" :
+                "{{ route('facialtreatment.index') }}/" + $('#user_id').val();
 
             // Tentukan jenis permintaan (POST atau PUT)
-            var requestType = actionType === "create-user" ? "POST" : "PUT";
+            var requestType = actionType === "create-user" ? "POST" : "POST";
+
+            var formData = new FormData($('#userForm')[0]);
+
+            console.log('Form Data:', Array.from(formData.entries()));
+
 
             $.ajax({
-                data: $('#userForm').serialize(),
-                url: url,
-                type: requestType,
+                data: formData,
+                url: "{{ route('facialtreatment.store') }}",
+                type: 'POST',
                 dataType: 'json',
+                processData: false,
+                contentType: false,
                 success: function (data) {
                     $('#userForm').trigger("reset");
                     $('#ajaxModel').modal('hide');
@@ -189,42 +218,24 @@
 
                     // Tampilkan alert sukses
                     if (actionType === "create-user") {
-                        $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'success', 'message' => 'Obat baru ditambahkan!'])
-                            @endcomponent
-                        `);
+                        toastr.success('Facial Treatment baru ditambahkan!');
                     } else {
-                        $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'success', 'message' => 'Obat diperbarui!'])
-                            @endcomponent
-                        `);
+                        toastr.success('Facial Treatment diperbarui!');
                     }
-
-                    document.location.reload(true);
-                    window.location.reload(true);
                 },
                 error: function (xhr) {
                     $('#saveBtn').html('Simpan Data');
 
                     // Tampilkan pesan error
                     if (xhr.status === 422) {
+                        // displayValidationErrors(xhr.responseJSON.errors);
                         let errors = xhr.responseJSON.errors;
-                        if (errors.kd_poli) {
-                            $('#kd_poliError').text(errors.kd_poli[0]);
-                        }
-                        if (errors.nama_poli) {
-                            $('#nama_poliError').text(errors.nama_poli[0]);
-                        }
-
+                        $.each(xhr.responseJSON.errors, function (key, value) {
+                            $('#'+key+'Error').text(value[0]);
+                        });
                     } else {
-                        $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'danger', 'message' => 'Obat gagal ditambahkan!'])
-                            @endcomponent
-                        `);
+                        toastr.error('Facial Treatment gagal ditambahkan!');
                     }
-
-                    document.location.reload(true);
-                    window.location.reload(true);
                 }
             });
         });
@@ -238,31 +249,19 @@
         $('#confirmDeleteBtn').off('click').on('click', function () {
             $.ajax({
                 type: 'DELETE',
-                url: "{{ route('polis.index') }}/" + user_id,
+                url: "{{ route('facialtreatment.index') }}/" + user_id,
                 success: function (data) {
-                    
                     $('#laravel_datatable').DataTable().ajax.reload();
                     $('#confirmDeleteModal').modal('hide');
-                    
-
 
                     // Tampilkan alert sukses
-                    $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'success', 'message' => 'Obat berhasil dihapus!'])
-                            @endcomponent
-                        `);
-
-                        document.location.reload(true);
-                        window.location.reload(true);
+                    toastr.success('Facial Treatment berhasil dihapus!');
                 },
                 error: function (xhr) {
                     $('#confirmDeleteModal').modal('hide');
 
                     // Tampilkan alert error
-                    $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'danger', 'message' => 'Obat gagal dihapus!'])
-                            @endcomponent
-                        `);
+                    toastr.error('Obat gagal dihapus!');
                 }
             });
         });

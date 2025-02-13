@@ -15,7 +15,7 @@
                     <!-- Page title actions -->
                     <div class="col-auto ms-auto d-print-none">
                         <div class="btn-list">
-                            <a href="javascript:void(0)" class="btn btn-gr d-none d-sm-inline-block" id="createNewUser">
+                            <a href="javascript:void(0)" class="btn btn-gr" id="createNewUser">
                                 <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
                                 <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24"
                                     viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
@@ -23,7 +23,7 @@
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
                                     <path d="M12 5l0 14" />
                                     <path d="M5 12l14 0" /></svg>
-                                Add {{ $title ?? env('APP_NAME') }}
+                                Tambah {{ $title ?? env('APP_NAME') }}
                             </a>
 
                         </div>
@@ -38,8 +38,13 @@
 <div class="container mt-5">
 
     <div class="card">
-        <div class="card-header">
+        <div class="card-header d-flex align-items-center justify-content-between">
             <h3 class="card-title">{{ $title ?? env('APP_NAME') }}</h3>
+            {{-- <div class="col-auto ms-auto d-print-none">
+                <a href="javascript:void(0)" class="btn btn-gr" id="createNewUser">
+                    Tambah {{ $title ?? env('APP_NAME') }}
+                </a>
+            </div> --}}
         </div>
         <div class="card-body">
             <div class="row">
@@ -105,17 +110,26 @@
                         {
                             extend: 'excel',
                             text: '<i class="fas fa-file-excel"></i> Excel',
-                            className: 'btn btn-info btn-sm'
+                            className: 'btn btn-info btn-sm',
+                            exportOptions: {
+                                columns: ':not(:last-child)' // Exclude last column (action column)
+                            }
                         },
                         {
                             extend: 'pdf',
                             text: '<i class="fas fa-file-pdf"></i> PDF',
-                            className: 'btn btn-danger btn-sm'
+                            className: 'btn btn-danger btn-sm',
+                            exportOptions: {
+                                columns: ':not(:last-child)' // Exclude last column (action column)
+                            }
                         },
                         {
                             extend: 'print',
                             text: '<i class="fas fa-print"></i> Print',
-                            className: 'btn btn-secondary btn-sm'
+                            className: 'btn btn-secondary btn-sm',
+                            exportOptions: {
+                                columns: ':not(:last-child)' // Exclude last column (action column)
+                            }
                         }
                     ],
                 },
@@ -198,7 +212,7 @@
             $('#saveBtn').val("create-user");
             $('#user_id').val('');
             $('#userForm').trigger("reset");
-            $('#modelHeading').html("Add New {{ $title ?? env('APP_NAME') }}");
+            $('#modelHeading').html("Tambah {{ $title ?? env('APP_NAME') }}");
             $('#ajaxModel').modal('show');
         });
 
@@ -218,8 +232,6 @@
                 $('#no_hp').val(data.no_hp);
                 $('#tanggal_lahir').val(data.tanggal_lahir);
                 $('#jk').val(data.jk);
-                $('#pekerjaan').val(data.pekerjaan);
-                $('#kewarganegaraan').val(data.kewarganegaraan);
                 $('#agama').val(data.agama);
                 $('#pendidikan').val(data.pendidikan);
                 $('#status').val(data.status);
@@ -260,15 +272,9 @@
 
                     // Tampilkan alert sukses
                     if (actionType === "create-user") {
-                        $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'success', 'message' => 'Dokter baru ditambahkan!'])
-                            @endcomponent
-                        `);
+                        toastr.success('Dokter baru ditambahkan!');
                     } else {
-                        $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'success', 'message' => 'Dokter diperbarui!'])
-                            @endcomponent
-                        `);
+                        toastr.success('Dokter diperbarui!');
                     }
                 },
                 error: function (xhr) {
@@ -299,10 +305,7 @@
                             $('#spesialisasiError').text(errors.spesialisasi[0]);
                         }
                     } else {
-                        $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'danger', 'message' => 'Dokter gagal ditambahkan!'])
-                            @endcomponent
-                        `);
+                        toastr.error('Dokter gagal ditambahkan!', 'Error');
                     }
                 }
             });
@@ -323,19 +326,13 @@
                     $('#confirmDeleteModal').modal('hide');
 
                     // Tampilkan alert sukses
-                    $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'success', 'message' => 'Dokter berhasil dihapus!'])
-                            @endcomponent
-                        `);
+                    toastr.success('Dokter berhasil dihapus!', 'Success');
                 },
                 error: function (xhr) {
                     $('#confirmDeleteModal').modal('hide');
 
                     // Tampilkan alert error
-                    $('#alertPlaceholder').html(`
-                            @component('components.popup.alert', ['type' => 'danger', 'message' => 'Dokter gagal dihapus!'])
-                            @endcomponent
-                        `);
+                    toastr.error('Dokter gagal dihapus!', 'Error');
                 }
             });
         });

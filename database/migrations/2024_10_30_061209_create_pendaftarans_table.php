@@ -17,9 +17,10 @@ return new class extends Migration
             $table->string('no_pendaftaran');
             $table->string('pasien_id');
             $table->string('dokter_id');
-            $table->string('poli_id');
             $table->date('tanggal_daftar');
+            $table->string('waktu');
             $table->mediumText('keluhan');
+            $table->longText('hasilDeteksi')->nullable();
             $table->string('status');
             $table->timestamps();
         });

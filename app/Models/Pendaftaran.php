@@ -9,7 +9,7 @@ class Pendaftaran extends Model
     protected $table = 'data_pendaftaran';
 
     protected $fillable = [
-        'poli_id',
+        'waktu',
         'dokter_id',
         'no_antrian',
         'no_pendaftaran',
